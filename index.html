@@ -2,42 +2,41 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>→</title>
+  <title>↑</title>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
-    body { 
-      background:#000; 
-      overflow:hidden; 
-      display:flex; 
-      justify-content:center; 
-      align-items:center; 
-      height:100vh; 
+    body {
+      background:#000;
+      overflow:hidden;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      height:100vh;
       font-family: -apple-system, sans-serif;
     }
-    #arrow { 
-      font-size: 240px; 
-      color: #5CACEE; 
+    #arrow {
+      font-size: 480px;
+      color: #5CACEE;
       text-shadow: 0 0 12px #5CACEE;
-      transform: translateY(-50%) scale(0.5) rotate(0deg);
-      opacity: 0;
-      pointer-events: none;
       position: absolute;
       top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.5) rotate(0deg);
+      opacity: 0;
+      pointer-events: none;
     }
-    /* Spin: fade in + grow + rotate с постоянной угловой скоростью */
     @keyframes spin {
-      0%   { transform: translateY(-50%) scale(0.5) rotate(0deg); opacity: 0; }
-      100% { transform: translateY(-50%) scale(1) rotate(var(--total-deg)); opacity: 1; }
+      0%   { transform: translate(-50%, -50%) scale(0.5) rotate(0deg); opacity: 0; }
+      100% { transform: translate(-50%, -50%) scale(1) rotate(var(--total-deg)); opacity: 1; }
     }
     .spinning { animation: spin var(--duration) linear forwards; }
   </style>
 </head>
 <body>
-  <div id="arrow">→</div>
-
+  <div id="arrow">↑</div>
   <script>
     const arrow = document.getElementById('arrow');
     let running = false;
@@ -46,35 +45,37 @@
       if (running) return;
       running = true;
 
-      // 1. Выбираем направление и повороты
-      const left = Math.random() < 0.5;
-      const turns = 2 + Math.floor(Math.random() * 3); // 2, 3 или 4 полных оборота
+      // ВВЕРХ (0 mod 360) или ВНИЗ (+180)
+      const down = Math.random() < 0.5;
+      const turns = 2 + Math.floor(Math.random() * 3); // 2-4 оборота
       const baseDeg = turns * 360;
-      const finalDeg = left ? baseDeg + 180 : baseDeg; // +180° для левого направления
+      const finalDeg = down ? baseDeg + 180 : baseDeg;
 
-      // 2. Фиксированная угловая скорость: 360° за 0.7 сек → 1 оборот = 0.7 сек
-      const duration = (finalDeg / 360) * 0.7; // от 1.4 до 2.8 сек
+      const duration = (finalDeg / 360) * 0.7; // постоянная скорость
 
-      // 3. Устанавливаем CSS-переменные
+      // Сброс к начальному состоянию
+      arrow.style.opacity = '0';
+      arrow.style.transform = 'translate(-50%, -50%) scale(0.5) rotate(0deg)';
+
       arrow.style.setProperty('--total-deg', finalDeg + 'deg');
       arrow.style.setProperty('--duration', duration + 's');
 
-      // 4. Сброс и запуск анимации
       arrow.classList.remove('spinning');
-      void arrow.offsetWidth; // форсируем reflow
+      void arrow.offsetWidth; // reflow
       arrow.classList.add('spinning');
 
-      // 5. После анимации — фиксируем (без прыжка)
       setTimeout(() => {
         arrow.classList.remove('spinning');
-        arrow.style.transform = `translateY(-50%) scale(1) rotate(${finalDeg}deg)`;
+
+        // Фиксируем финальное состояние inline (чтобы не ревертить при remove class)
+        arrow.style.transform = `translate(-50%, -50%) scale(1) rotate(${finalDeg}deg)`;
         arrow.style.opacity = '1';
+
         running = false;
-        setTimeout(spin, 2800); // пауза 2.8 сек
+        setTimeout(spin, 2800); // пауза
       }, duration * 1000);
     }
 
-    // Автостарт
     setTimeout(spin, 600);
   </script>
 </body>
